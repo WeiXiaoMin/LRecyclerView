@@ -443,31 +443,66 @@ public class LRecyclerView extends RecyclerView {
 
     /**
      * 设置Footer文字颜色
+     *
      * @param indicatorColor
      * @param hintColor
      * @param backgroundColor
      */
-    public void setFooterViewColor(int indicatorColor, int hintColor, int backgroundColor) {
+    public void setFooterViewColor(@ColorRes int indicatorColor, int hintColor, int backgroundColor) {
         if (mLoadMoreFooter != null && mLoadMoreFooter instanceof LoadingFooter) {
             LoadingFooter loadingFooter = ((LoadingFooter) mLoadMoreFooter);
-            loadingFooter.setIndicatorColor(ContextCompat.getColor(getContext(),indicatorColor));
+            loadingFooter.setIndicatorColor(ContextCompat.getColor(getContext(), indicatorColor));
             loadingFooter.setHintTextColor(hintColor);
             loadingFooter.setViewBackgroundColor(backgroundColor);
         }
     }
 
     /**
-     * 设置颜色
-     * @param indicatorColor Only call the method setRefreshProgressStyle(int style) to take effect
+     * wxm 设置Footer文字颜色
+     *
+     * @param indicatorColor
      * @param hintColor
      * @param backgroundColor
      */
-    public void setHeaderViewColor(int indicatorColor, int hintColor, int backgroundColor) {
+    public void setFooterViewColorRes(@ColorRes int indicatorColor, @ColorRes int hintColor, @ColorRes int backgroundColor) {
+        if (mLoadMoreFooter != null && mLoadMoreFooter instanceof LoadingFooter) {
+            LoadingFooter loadingFooter = ((LoadingFooter) mLoadMoreFooter);
+            loadingFooter.setIndicatorColor(ContextCompat.getColor(getContext(), indicatorColor));
+            loadingFooter.setHintTextColor(ContextCompat.getColor(getContext(), hintColor));
+            loadingFooter.setViewBackgroundColor(ContextCompat.getColor(getContext(), backgroundColor));
+        }
+    }
+
+    /**
+     * 设置颜色
+     *
+     * @param indicatorColor  Only call the method setRefreshProgressStyle(int style) to take effect
+     * @param hintColor
+     * @param backgroundColor
+     */
+    public void setHeaderViewColor(@ColorRes int indicatorColor, int hintColor, int backgroundColor) {
         if (mRefreshHeader != null && mRefreshHeader instanceof ArrowRefreshHeader) {
             ArrowRefreshHeader arrowRefreshHeader = ((ArrowRefreshHeader) mRefreshHeader);
-            arrowRefreshHeader.setIndicatorColor(ContextCompat.getColor(getContext(),indicatorColor));
+            arrowRefreshHeader.setIndicatorColor(ContextCompat.getColor(getContext(), indicatorColor));
             arrowRefreshHeader.setHintTextColor(hintColor);
             arrowRefreshHeader.setViewBackgroundColor(backgroundColor);
+        }
+
+    }
+
+    /**
+     * wxm 设置颜色
+     *
+     * @param indicatorColor  Only call the method setRefreshProgressStyle(int style) to take effect
+     * @param hintColor
+     * @param backgroundColor
+     */
+    public void setHeaderViewColorRes(@ColorRes int indicatorColor, @ColorRes int hintColor, @ColorRes int backgroundColor) {
+        if (mRefreshHeader != null && mRefreshHeader instanceof ArrowRefreshHeader) {
+            ArrowRefreshHeader arrowRefreshHeader = ((ArrowRefreshHeader) mRefreshHeader);
+            arrowRefreshHeader.setIndicatorColor(ContextCompat.getColor(getContext(), indicatorColor));
+            arrowRefreshHeader.setHintTextColor(ContextCompat.getColor(getContext(), hintColor));
+            arrowRefreshHeader.setViewBackgroundColor(ContextCompat.getColor(getContext(), backgroundColor));
         }
 
     }
