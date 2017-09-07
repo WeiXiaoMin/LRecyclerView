@@ -1,5 +1,6 @@
 package com.github.jdsjlzx.recyclerview;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -11,18 +12,18 @@ import com.github.jdsjlzx.interfaces.IRefreshHeader;
 import com.github.jdsjlzx.interfaces.OnItemClickListener;
 import com.github.jdsjlzx.interfaces.OnItemLongClickListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * RecyclerView.Adapter with Header and Footer
  */
-public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class MRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TYPE_REFRESH_HEADER = 10000;
+    private static final int COUNT_REFRESH_HEADER = 1;
     private static final int TYPE_NORMAL = 0;
-    private static final int TYPE_FOOTER_VIEW = 10001;
     private static final int HEADER_BASE_KEY = 17031601;
+    private static final int FOOTER_BASE_KEY = 17042701;
 
     private IRefreshHeader mRefreshHeader;
 
@@ -35,12 +36,12 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     private RecyclerView.Adapter mInnerAdapter;
 
     private SparseArray<View> mHeaderViews = new SparseArray<>();
-    private ArrayList<View> mFooterViews = new ArrayList<>();
+    private SparseArray<View> mFooterViewArray = new SparseArray<>(2);
 
     private SpanSizeLookup mSpanSizeLookup;
 
 
-    public LRecyclerViewAdapter(RecyclerView.Adapter innerAdapter) {
+    public MRecyclerViewAdapter(RecyclerView.Adapter innerAdapter) {
         this.mInnerAdapter = innerAdapter;
     }
 
@@ -77,8 +78,21 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
             throw new RuntimeException("footer is null");
         }
 
-        removeFooterView();
-        mFooterViews.add(view);
+        if (mFooterViewArray.size() > 0) {
+            int key = mFooterViewArray.keyAt(mFooterViewArray.size() - 1);
+            mFooterViewArray.put(key + 1, view);
+        } else {
+            mFooterViewArray.put(FOOTER_BASE_KEY, view);
+        }
+
+    }
+
+    public void addFooterView(int key, View view) {
+        mFooterViewArray.put(FOOTER_BASE_KEY + key, view);
+    }
+
+    public int getFooterViewIndex(View view) {
+        return mFooterViewArray.indexOfValue(view);
     }
 
     /**
@@ -101,14 +115,15 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         return mHeaderViews.get(itemViewType) != null;
     }
 
-    /**
-     * 返回第一个FootView
-     *
-     * @return
-     */
-    public View getFooterView() {
-        return getFooterViewsCount() > 0 ? mFooterViews.get(0) : null;
+    private boolean isFooterType(int viewType) {
+        return mFooterViewArray.get(viewType) != null;
     }
+
+    @Nullable
+    public View getFooterView(int key) {
+        return mFooterViewArray.get(FOOTER_BASE_KEY + key);
+    }
+
 
     /**
      * 返回第一个HeaderView
@@ -152,33 +167,60 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         return mHeaderViews.get(HEADER_BASE_KEY + key) != null;
     }
 
-    public void removeFooterView() {
-        if (getFooterViewsCount() > 0) {
-            View footerView = getFooterView();
-            mFooterViews.remove(footerView);
+    public void clearFooterView() {
+        mFooterViewArray.clear();
+        this.notifyDataSetChanged();
+    }
+
+    public void removeFooterView(View view) {
+        int index = mFooterViewArray.indexOfValue(view);
+        if (index >= 0) {
+            mFooterViewArray.removeAt(index);
             this.notifyDataSetChanged();
         }
     }
+
+    public void removeFooterViewWithNotify(View view) {
+        int index = mFooterViewArray.indexOfValue(view);
+        if (index >= 0) {
+            mFooterViewArray.removeAt(index);
+        }
+    }
+
 
     public int getHeaderViewsCount() {
         return mHeaderViews.size();
     }
 
     public int getFooterViewsCount() {
-        return mFooterViews.size();
+        return mFooterViewArray.size();
     }
 
     public boolean isHeader(int position) {
-        return position >= 1 && position < mHeaderViews.size() + 1;
+        return position >= COUNT_REFRESH_HEADER && position < mHeaderViews.size() + COUNT_REFRESH_HEADER;
     }
 
     public boolean isRefreshHeader(int position) {
-        return position == 0;
+        return position < COUNT_REFRESH_HEADER;
     }
 
     public boolean isFooter(int position) {
         int lastPosition = getItemCount() - getFooterViewsCount();
         return getFooterViewsCount() > 0 && position >= lastPosition;
+    }
+
+    public int convertFooterPosition(int position) {
+
+        if (getFooterViewsCount() == 0) {
+            return -1;
+        }
+
+        int innerItemCount = 0;
+        if (mInnerAdapter != null) {
+            innerItemCount = mInnerAdapter.getItemCount();
+        }
+
+        return position - COUNT_REFRESH_HEADER - getHeaderViewsCount() - innerItemCount;
     }
 
 
@@ -189,8 +231,8 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
             return new ViewHolder(mRefreshHeader.getHeaderView());
         } else if (isHeaderType(viewType)) {
             return new ViewHolder(getHeaderViewByType(viewType));
-        } else if (viewType == TYPE_FOOTER_VIEW) {
-            return new ViewHolder(mFooterViews.get(0));
+        } else if (isFooterType(viewType)) {
+            return new ViewHolder(mFooterViewArray.get(viewType));
         }
         return mInnerAdapter.onCreateViewHolder(parent, viewType);
     }
@@ -200,7 +242,7 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
         if (isHeader(position) || isRefreshHeader(position)) {
             return;
         }
-        final int adjPosition = position - (getHeaderViewsCount() + 1);
+        final int adjPosition = position - (getHeaderViewsCount() + COUNT_REFRESH_HEADER);
         int adapterCount;
         if (mInnerAdapter != null) {
             adapterCount = mInnerAdapter.getItemCount();
@@ -240,7 +282,7 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
             if (isHeader(position) || isRefreshHeader(position)) {
                 return;
             }
-            final int adjPosition = position - (getHeaderViewsCount() + 1);
+            final int adjPosition = position - (getHeaderViewsCount() + COUNT_REFRESH_HEADER);
             int adapterCount;
             if (mInnerAdapter != null) {
                 adapterCount = mInnerAdapter.getItemCount();
@@ -255,25 +297,30 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     @Override
     public int getItemCount() {
         if (mInnerAdapter != null) {
-            return getHeaderViewsCount() + getFooterViewsCount() + mInnerAdapter.getItemCount() + 1;
+            return getHeaderViewsCount() + getFooterViewsCount() + mInnerAdapter.getItemCount() + COUNT_REFRESH_HEADER;
         } else {
-            return getHeaderViewsCount() + getFooterViewsCount() + 1;
+            return getHeaderViewsCount() + getFooterViewsCount() + COUNT_REFRESH_HEADER;
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        int adjPosition = position - (getHeaderViewsCount() + 1);
+        int adjPosition = position - (getHeaderViewsCount() + COUNT_REFRESH_HEADER);
         if (isRefreshHeader(position)) {
             return TYPE_REFRESH_HEADER;
         }
         if (isHeader(position)) {
-            position = position - 1;
+            position = position - COUNT_REFRESH_HEADER;
             return mHeaderViews.keyAt(position);
         }
         if (isFooter(position)) {
-            return TYPE_FOOTER_VIEW;
+            int footerPosition = convertFooterPosition(position);
+            if (footerPosition >= 0) {
+                return mFooterViewArray.keyAt(footerPosition);
+            }
         }
+
+
         int adapterCount;
         if (mInnerAdapter != null) {
             adapterCount = mInnerAdapter.getItemCount();
@@ -281,6 +328,7 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
                 return mInnerAdapter.getItemViewType(adjPosition);
             }
         }
+
         return TYPE_NORMAL;
     }
 
@@ -396,7 +444,5 @@ public class LRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void setSpanSizeLookup(SpanSizeLookup spanSizeLookup) {
         this.mSpanSizeLookup = spanSizeLookup;
     }
-
-
 
 }

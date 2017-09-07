@@ -29,6 +29,7 @@ import java.util.ArrayList;
 /**
  * 带HeaderView的分页加载LinearLayout RecyclerView
  */
+// TODO: 2017/9/7 wxm bug：点开一级列表第一个条目，然后一次关闭其二级列表，最后关闭该一级列表条目。此时，再点击一级列表的第二个条目，发现展开的是一级列表的第5个条目，说明记录的position问题。
 public class ExpandableRecyclerViewOneActivity extends AppCompatActivity {
     private static final String TAG = "lzx";
 

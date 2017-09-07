@@ -25,6 +25,7 @@ import java.util.List;
  * RecyclerView嵌套RecyclerView
  * 参考：http://blog.csdn.net/z593492734/article/details/51492472
  */
+// wxm:// TODO: 2017/9/7 嵌套可滑动的控件使得下拉刷新冲突
 public class Nest2RecyclerViewActivity extends AppCompatActivity{
     private static final String TAG = "lzx";
 

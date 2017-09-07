@@ -15,6 +15,7 @@ import com.lzx.demo.fragment.DoubleHeaderFragment;
 import com.lzx.demo.fragment.InlineStickyHeaderFragment;
 import com.lzx.demo.fragment.StickyHeaderFragment;
 
+// wxm:// TODO: 2017/9/7 bug： 滑动Sticky Header位置，RecyclerView滚动行为不响应
 public class SectionLayoutActivity extends AppCompatActivity {
 
     @Override

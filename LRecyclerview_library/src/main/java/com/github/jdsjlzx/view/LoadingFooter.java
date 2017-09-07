@@ -16,7 +16,7 @@ import com.github.jdsjlzx.interfaces.ILoadMoreFooter;
 import com.github.jdsjlzx.progressindicator.AVLoadingIndicatorView;
 import com.github.jdsjlzx.recyclerview.ProgressStyle;
 
-public class LoadingFooter extends RelativeLayout implements ILoadMoreFooter{
+public class LoadingFooter extends RelativeLayout implements ILoadMoreFooter {
 
     protected State mState = State.Normal;
     private View mLoadingView;
