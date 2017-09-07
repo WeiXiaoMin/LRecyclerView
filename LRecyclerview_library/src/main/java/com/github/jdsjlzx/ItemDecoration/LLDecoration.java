@@ -11,6 +11,7 @@ import com.github.jdsjlzx.recyclerview.MRecyclerViewAdapter;
 
 /**
  * wxm 修改自LBottomDecoration，默认在每个item下方以及第一个item的上方添加分割线，可重写
+ * 适合LayoutManager为LinearLayoutManager的RecyclerView
  * Created by sjsd on 2017/3/17.
  */
 
@@ -21,17 +22,35 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
     protected int mRPadding;
     protected Paint mPaint;
 
+    /**
+     * 间隙高度
+     *
+     * @param height
+     * @return
+     */
     public LLDecoration setHeight(int height) {
         this.mHeight = height;
 
         return this;
     }
 
+    /**
+     * 左侧间隙宽度
+     *
+     * @param lPadding
+     * @return
+     */
     public LLDecoration setLPadding(int lPadding) {
         this.mLPadding = lPadding;
         return this;
     }
 
+    /**
+     * 右侧间隙宽度
+     *
+     * @param rPadding
+     * @return
+     */
     public LLDecoration setRPadding(int rPadding) {
         this.mRPadding = rPadding;
         return this;
@@ -48,7 +67,7 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
      * {@inheritDoc}
      */
     @Override
-    public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
+    public final void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
 
         RecyclerView.Adapter adapter = parent.getAdapter();
         int count = parent.getChildCount();
@@ -57,11 +76,11 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
             LRecyclerViewAdapter lRecyclerViewAdapter = (LRecyclerViewAdapter) adapter;
             drawL(c, parent, lRecyclerViewAdapter, count);
 
-        } else if(adapter instanceof MRecyclerViewAdapter){
+        } else if (adapter instanceof MRecyclerViewAdapter) {
             MRecyclerViewAdapter mRecyclerViewAdapter = (MRecyclerViewAdapter) adapter;
             drawM(c, parent, mRecyclerViewAdapter, count);
 
-        }else {
+        } else {
             throw new RuntimeException("the adapter must be LRecyclerViewAdapter");
         }
 
@@ -76,18 +95,18 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
             c.save();
 
             if (adapter.isRefreshHeader(position)) {
-                onDrawRefreshHeaderDecoration(child, c, position);
+                drawRefreshHeaderDecoration(child, c, position);
 
             } else if (adapter.isHeader(position)) {
-                onDrawHeaderDecoration(child, c, position);
+                drawHeaderDecoration(child, c, position);
 
             } else if (adapter.isFooter(position)) {
-                onDrawFooterDecoration(child, c, position);
+                drawFooterDecoration(child, c, position);
 
             } else {
 
                 int itemPosition = adapter.getAdapterPosition(true, position);
-                onDrawItemDecoration(child, c, itemPosition);
+                drawItemDecoration(child, c, itemPosition);
             }
 
             c.restore();
@@ -104,59 +123,105 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
             c.save();
 
             if (lRecyclerViewAdapter.isRefreshHeader(position)) {
-                onDrawRefreshHeaderDecoration(child, c, position);
+                drawRefreshHeaderDecoration(child, c, position);
 
             } else if (lRecyclerViewAdapter.isHeader(position)) {
-                onDrawHeaderDecoration(child, c, position);
+                drawHeaderDecoration(child, c, position);
 
             } else if (lRecyclerViewAdapter.isFooter(position)) {
-                onDrawFooterDecoration(child, c, position);
+                drawFooterDecoration(child, c, position);
 
             } else {
 
                 int itemPosition = lRecyclerViewAdapter.getAdapterPosition(true, position);
-                onDrawItemDecoration(child, c, itemPosition);
+                drawItemDecoration(child, c, itemPosition);
             }
 
             c.restore();
         }
     }
 
-    protected void onDrawItemDecoration(View child, Canvas c, int itemPosition) {
+    /**
+     * wxm:绘制ItemDecoration，第一个item的上方分割线默认绘制
+     *
+     * @param child
+     * @param c
+     * @param itemPosition
+     */
+    protected void drawItemDecoration(View child, Canvas c, int itemPosition) {
 
         if (mPaint == null) {
             return;
         }
 
-        final int top = child.getBottom();
-        final int bottom = top + mHeight;
-
-        int left = child.getLeft() + mLPadding;
-        int right = child.getRight() - mRPadding;
-
-        if (itemPosition == 0) {
-
-            int bottom1 = child.getTop();
-            int top1 = bottom1 - mHeight;
-            c.drawRect(left, top1, right, bottom1, mPaint);
-            c.drawRect(left, top, right, bottom, mPaint);
-
-        } else {
-
-            c.drawRect(left, top, right, bottom, mPaint);
+        if(mLPadding>0) {
+            // wxm:item左侧
+            c.drawRect( child.getLeft(),
+                    child.getTop() - mHeight,
+                    child.getLeft() + mLPadding,
+                    child.getBottom() + mHeight,
+                    mPaint);
         }
 
+        if (itemPosition == 0 && mHeight > 0) {
+            // wxm:item上方
+            c.drawRect(child.getLeft() + mLPadding,
+                    child.getTop() - mHeight,
+                    child.getRight() - mRPadding,
+                    child.getTop(),
+                    mPaint);
+        }
+
+        if(mRPadding>0) {
+            // wxm:item右侧
+            c.drawRect(child.getRight() - mRPadding,
+                    child.getTop() - mHeight,
+                    child.getRight(),
+                    child.getBottom() + mHeight,
+                    mPaint);
+        }
+
+        if(mHeight>0) {
+            // wxm:item下方
+            c.drawRect(child.getLeft() + mLPadding,
+                    child.getBottom(),
+                    child.getRight() - mRPadding,
+                    child.getBottom() + mHeight,
+                    mPaint);
+        }
     }
 
-    protected void onDrawFooterDecoration(View child, Canvas c, int position) {
+
+    /**
+     * wxm: 绘制脚视图的Decoration，供实现
+     *
+     * @param child
+     * @param c
+     * @param position
+     */
+    protected void drawFooterDecoration(View child, Canvas c, int position) {
 
     }
 
-    protected void onDrawHeaderDecoration(View child, Canvas c, int position) {
+    /**
+     * wxm: 绘制头视图的Decoration，供实现
+     *
+     * @param child
+     * @param c
+     * @param position
+     */
+    protected void drawHeaderDecoration(View child, Canvas c, int position) {
 
     }
 
-    protected void onDrawRefreshHeaderDecoration(View child, Canvas c, int position) {
+    /**
+     * wxm: 绘制头部刷新视图的Decoration，供实现
+     *
+     * @param child
+     * @param c
+     * @param position
+     */
+    protected void drawRefreshHeaderDecoration(View child, Canvas c, int position) {
 
     }
 
@@ -165,7 +230,7 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
      * {@inheritDoc}
      */
     @Override
-    public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+    public final void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
 
         RecyclerView.Adapter adapter = parent.getAdapter();
         int position = parent.getChildAdapterPosition(view);
@@ -174,10 +239,10 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
             LRecyclerViewAdapter lRecyclerViewAdapter = (LRecyclerViewAdapter) adapter;
             offL(outRect, lRecyclerViewAdapter, position);
 
-        } else if(adapter instanceof MRecyclerViewAdapter){
+        } else if (adapter instanceof MRecyclerViewAdapter) {
             MRecyclerViewAdapter mRecyclerViewAdapter = (MRecyclerViewAdapter) adapter;
             offM(outRect, mRecyclerViewAdapter, position);
-        }else {
+        } else {
 
             throw new RuntimeException("the adapter must be LRecyclerViewAdapter");
         }
@@ -219,6 +284,12 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
         }
     }
 
+    /**
+     * 让item腾出间隙，第一个item上方默认腾出间隙
+     *
+     * @param outRect
+     * @param itemPosition
+     */
     protected void offsetsItemDecoration(Rect outRect, int itemPosition) {
 
         if (itemPosition == 0) {
@@ -226,17 +297,34 @@ public class LLDecoration extends RecyclerView.ItemDecoration {
         } else {
             outRect.set(0, 0, 0, mHeight);
         }
-
     }
 
+    /**
+     * 腾出脚视图的间隙
+     *
+     * @param outRect
+     * @param position
+     */
     protected void offsetsFooterDecoration(Rect outRect, int position) {
 
     }
 
+    /**
+     * 腾出头视图的间隙
+     *
+     * @param outRect
+     * @param position
+     */
     protected void offsetsHeaderDecoration(Rect outRect, int position) {
 
     }
 
+    /**
+     * 腾出头部刷新视图的间隙
+     *
+     * @param outRect
+     * @param position
+     */
     protected void offsetsRefreshHeaderDecoration(Rect outRect, int position) {
 
     }
